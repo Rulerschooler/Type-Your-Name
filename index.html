@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Type your name</title>
+<style>
+:root{color-scheme:dark;--accent:#ff334f}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#f7f7fb;background:radial-gradient(ellipse at top,#35131e 0%,#111116 48%,#08080b 100%)}main{width:min(100%,560px);padding:clamp(24px,6vw,42px);border:1px solid #ffffff1c;border-radius:24px;background:#141419e8;box-shadow:0 24px 80px #0008}.mark{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#ff334f1c;color:var(--accent);font-size:25px;margin-bottom:22px}h1{margin:0 0 10px;font-size:clamp(28px,6vw,38px);letter-spacing:-1px}.sub{margin:0 0 28px;color:#a9a9b6;line-height:1.6}label{display:block;margin-bottom:9px;font-size:14px;color:#d8d8e2}.search-row{display:flex;gap:10px}input,textarea{min-width:0;width:100%;padding:14px 15px;border-radius:12px;border:1px solid #383842;background:#0d0d12;color:white;font:inherit;outline:none}input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #ff334f22}.search-row input{flex:1}button{border:0;border-radius:12px;padding:13px 18px;font:inherit;font-weight:700;color:white;background:var(--accent);cursor:pointer}button:hover{filter:brightness(1.1)}button.secondary{background:#292932;border:1px solid #41414c}button:focus-visible{outline:3px solid white;outline-offset:3px}#result{margin-top:22px;padding:18px;border:1px solid #ffffff18;border-radius:14px;background:#ffffff06;line-height:1.6}#result[hidden],.panel[hidden]{display:none}.result-label{color:var(--accent);text-transform:uppercase;font-size:11px;letter-spacing:1.5px;font-weight:800}.result-name{font-size:21px;font-weight:750;margin:5px 0 8px}.info{color:#d2d2dc;white-space:pre-wrap;overflow-wrap:anywhere}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:28px;margin-bottom:12px}h2{margin:0;font-size:17px}.panel{padding:18px;border:1px solid #ffffff18;border-radius:14px;background:#ffffff06}.field{margin-bottom:14px}textarea{resize:vertical;min-height:88px}.actions{display:flex;flex-wrap:wrap;gap:10px}.small{color:#9292a1;font-size:12px;line-height:1.5}.saved-list{display:grid;gap:8px;margin-top:14px}.saved-item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border:1px solid #ffffff14;border-radius:10px;padding:11px}.saved-item strong{display:block;margin-bottom:3px}.saved-item p{margin:0;color:#bdbdc8;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.delete-btn{padding:7px 10px;font-size:12px;background:#332027}.notice{padding:12px;border-radius:10px;background:#302718;color:#e8d6a8;font-size:13px;line-height:1.5;margin-bottom:14px}@media(max-width:420px){.search-row{flex-direction:column}.search-row button{width:100%}}
+</style>
+</head>
+<body>
+<main>
+  <p class="small" style="margin:0 0 14px; letter-spacing:1.2px; text-transform:uppercase;">Made by Tobi</p>
+  <div class="mark" aria-hidden="true">⌕</div>
+  <h1>Type your name</h1>
+  <p class="sub">type your name and see what I think abt you</p>
+  <p class="small" style="margin-top:-14px;margin-bottom:18px;">Searches are recorded with the name entered and the date/time. Please don’t enter private information.</p>
+  <form id="lookupForm">
+    <label for="nameInput">Name</label>
+    <div class="search-row"><input id="nameInput" placeholder="Type a name..." autocomplete="off" required><button type="submit">Search</button></div>
+  </form>
+  <section id="result" aria-live="polite" hidden><div class="result-label" id="resultLabel">Result</div><div class="result-name" id="resultName"></div><div class="info" id="resultInfo"></div></section>
+
+  <div class="section-head"><h2>Owner controls</h2><button class="secondary" id="loginToggle" type="button">Owner login</button></div>
+  <section class="panel" id="loginPanel" hidden>
+    <div class="notice">Enter your admin password. Search history is protected by a server-side password check when the site is deployed with the Netlify function.</div>
+    <form id="loginForm">
+      <div class="field"><label for="ownerPassword">Owner password</label><input id="ownerPassword" type="password" autocomplete="current-password" required placeholder="Enter owner password"></div>
+      <button type="submit">Unlock admin panel</button>
+      <p class="small" id="loginMessage" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section class="panel" id="adminPanel" hidden>
+    <p class="small">The message editor saves in this browser only. Search history is stored separately on the server and can include searches from other visitors.</p>
+    <form id="entryForm">
+      <div class="field"><label for="entryName">Name</label><input id="entryName" required maxlength="80" placeholder="Enter a name"></div>
+      <div class="field"><label for="entryMessage">Message to show</label><textarea id="entryMessage" required maxlength="3000" placeholder="Write the message..."></textarea></div>
+      <div class="actions"><button type="submit">Save message</button><button class="secondary" id="clearForm" type="button">Clear form</button><button class="secondary" id="lockButton" type="button">Lock editor</button></div>
+    </form>
+    <div class="saved-list" id="savedList"></div>
+    <div class="section-head"><h2>Search history</h2><div class="actions"><button class="secondary" id="refreshHistory" type="button">Refresh</button><button class="secondary" id="clearHistory" type="button">Clear history</button></div></div>
+    <p class="small" id="historyStatus" aria-live="polite">History will load when you unlock the panel.</p>
+    <div class="saved-list" id="historyList"></div>
+  </section>
+  <p class="small">Admin history requires the Netlify function and server-side ADMIN_PASSWORD setting included with the project. Do not publish the old static-only version if you want shared search history.</p>
+</main>
+<script>
+  // Messages are still stored in this browser. Admin password and search history are handled server-side.
+  const defaultMessages = {
+    "Khadeeja": "I really love you, you know that right",
+    "Ajhani": "Yo bro you're the coolest friend I've ever had you mean the world to me",
+    "Keon": "Stop scamming people keon",
+    "Chrisan": "Weed aint good for your lungs dude"
+  };
+  const storageKey = "nameLookupMessagesV1";
+  let messages = loadMessages();
+  let unlocked = false;
+  let adminPassword = "";
+  function loadMessages(){
+    try { const s=localStorage.getItem(storageKey); if(s){const p=JSON.parse(s);if(p&&typeof p==="object"&&!Array.isArray(p))return p;} } catch(e){}
+    return {...defaultMessages};
+  }
+  function saveMessages(){
+    try{localStorage.setItem(storageKey,JSON.stringify(messages));return true;}
+    catch(e){alert("Could not save changes in this browser. Check browser storage settings.");return false;}
+  }
+  const $=id=>document.getElementById(id);
+  function findKey(name){return Object.keys(messages).find(k=>k.toLocaleLowerCase()===name.trim().toLocaleLowerCase());}
+  async function recordSearch(name){
+    try {
+      const response=await fetch("/.netlify/functions/search-log",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name})});
+      if(!response.ok) throw new Error("Search logging unavailable");
+    } catch(e) { /* Public search still works if the server function is not deployed. */ }
+  }
+  $("lookupForm").addEventListener("submit",async e=>{
+    e.preventDefault();const typed=$("nameInput").value.trim();if(!typed)return;
+    const key=findKey(typed);$("result").hidden=false;
+    if(key!==undefined){$("resultLabel").textContent="Message found";$("resultName").textContent=key;$("resultInfo").textContent=messages[key];}
+    else{$("resultLabel").textContent="No match";$("resultName").textContent="No information found";$("resultInfo").textContent="Yo mb I totally forgot abt you just text me and ill add what i think abt you";}
+    await recordSearch(typed);
+  });
+  $("loginToggle").addEventListener("click",()=>{$("loginPanel").hidden=!$("loginPanel").hidden;});
+  async function loadHistory(){
+    if(!unlocked)return;
+    $("historyStatus").textContent="Loading search history…";
+    try{
+      const response=await fetch("/.netlify/functions/search-log",{headers:{"x-admin-password":adminPassword}});
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||"Could not load history");
+      renderHistory(data.entries||[]);
+    }catch(e){$("historyStatus").textContent="Could not load history. Check that the Netlify function is deployed and the admin password is correct.";}
+  }
+  function renderHistory(entries){
+    const list=$("historyList");list.replaceChildren();
+    $("historyStatus").textContent=`${entries.length} recorded search${entries.length===1?"":"es"}. Newest first.`;
+    if(!entries.length){const empty=document.createElement("p");empty.className="small";empty.textContent="No searches recorded yet.";list.append(empty);return;}
+    for(const entry of entries){
+      const item=document.createElement("div");item.className="saved-item";
+      const content=document.createElement("div");const title=document.createElement("strong");title.textContent=entry.name||"(empty name)";
+      const time=document.createElement("p");const date=new Date(entry.searchedAt);time.textContent=Number.isNaN(date.getTime())?"Time unavailable":date.toLocaleString();content.append(title,time);item.append(content);list.append(item);
+    }
+  }
+  $("loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();const entered=$("ownerPassword").value;
+    $("loginMessage").textContent="Checking password…";
+    try{
+      const response=await fetch("/.netlify/functions/search-log",{headers:{"x-admin-password":entered}});
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||"Incorrect password");
+      adminPassword=entered;unlocked=true;$("loginPanel").hidden=true;$("adminPanel").hidden=false;$("loginToggle").textContent="Admin panel unlocked";$("loginMessage").textContent="";renderList();renderHistory(data.entries||[]);
+    }catch(e){$("loginMessage").textContent="Could not unlock. Check the password and make sure the Netlify backend is deployed.";}
+    $("ownerPassword").value="";
+  });
+  $("lockButton").addEventListener("click",()=>{unlocked=false;adminPassword="";$("adminPanel").hidden=true;$("loginPanel").hidden=true;$("loginToggle").textContent="Owner login";$("historyList").replaceChildren();$("historyStatus").textContent="History will load when you unlock the panel.";});
+  $("refreshHistory").addEventListener("click",loadHistory);
+  $("clearHistory").addEventListener("click",async()=>{
+    if(!unlocked||!confirm("Clear all recorded search history? This cannot be undone."))return;
+    try{const response=await fetch("/.netlify/functions/search-log",{method:"DELETE",headers:{"x-admin-password":adminPassword}});const data=await response.json();if(!response.ok)throw new Error(data.error||"Could not clear history");renderHistory([]);}
+    catch(e){$("historyStatus").textContent="Could not clear history. Check the server configuration and try again.";}
+  });
+  $("clearForm").addEventListener("click",()=>$("entryForm").reset());
+  $("entryForm").addEventListener("submit",e=>{
+    e.preventDefault();if(!unlocked)return;
+    const name=$("entryName").value.trim(),message=$("entryMessage").value.trim();if(!name||!message)return;
+    const old=findKey(name);if(old!==undefined)delete messages[old];messages[name]=message;
+    if(saveMessages()){$("entryForm").reset();renderList();$("nameInput").value=name;$("result").hidden=false;$("resultLabel").textContent="Message saved";$("resultName").textContent=name;$("resultInfo").textContent=message;}
+  });
+  function renderList(){
+    $("savedList").replaceChildren();
+    for(const name of Object.keys(messages).sort((a,b)=>a.localeCompare(b))){
+      const item=document.createElement("div");item.className="saved-item";const content=document.createElement("div");
+      const title=document.createElement("strong");title.textContent=name;const msg=document.createElement("p");msg.textContent=messages[name];content.append(title,msg);
+      const actions=document.createElement("div");actions.className="actions";
+      const edit=document.createElement("button");edit.type="button";edit.className="secondary";edit.textContent="Edit";edit.addEventListener("click",()=>{$("entryName").value=name;$("entryMessage").value=messages[name];$("entryName").focus();});
+      const del=document.createElement("button");del.type="button";del.className="delete-btn";del.textContent="Delete";del.addEventListener("click",()=>{if(unlocked&&confirm(`Delete the message for ${name}?`)){delete messages[name];if(saveMessages())renderList();}});
+      actions.append(edit,del);item.append(content,actions);$("savedList").append(item);
+    }
+  }
+</script>
+</body>
+</html>
